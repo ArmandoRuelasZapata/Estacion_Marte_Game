@@ -1,0 +1,571 @@
+{% extends "layout.html" %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interfaz de Videojuego con Botones estilo Pokémon</title>
+    <style>
+        /* Importar la fuente "Press Start 2P" desde Google Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Press Start 2P', cursive;
+            background-image: url('{{ url_for("static", filename="2.png") }}');
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-color: #000;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .game-container {
+            text-align: center;
+            position: relative;
+        }
+
+        /* Estilo del título con tipografía pixel art y animación */
+        .game-title {
+            font-family: 'Press Start 2P', cursive; /* Fuente pixel art */
+            font-size: 2.5rem; /* Tamaño de la fuente */
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+            animation: float 3s ease-in-out infinite; /* Animación de flotación */
+        }
+
+        /* Animación de flotación */
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) rotateY(0) rotateX(0);
+            }
+            50% {
+                transform: translateY(-10px) rotateY(5deg) rotateX(5deg);
+            }
+        }
+
+        .menu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.8rem;
+            perspective: 1000px; /* Perspectiva para el efecto 3D */
+        }
+
+        /* Estilo para los botones del menú principal (como el botón de arriba) */
+        .menu-button {
+            background: rgba(42, 42, 42, 0.8); /* Fondo más oscuro con transparencia */
+            border: 6px solid rgba(48, 96, 144, 0.8); /* Bordes más gruesos con transparencia */
+            border-radius: 0; /* Bordes rectos para estilo pixel art */
+            padding: 1rem 2rem; /* Más padding para un tamaño mayor */
+            color: #ffffff; /* Texto blanco */
+            font-family: 'Press Start 2P', cursive; /* Fuente pixel art */
+            font-size: 1.2rem; /* Texto más grande */
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            width: 250px; /* Ancho mayor */
+            text-align: center;
+            box-shadow: 0 8px 0 rgba(32, 64, 108, 0.8); /* Sombra más pronunciada con transparencia */
+            transform-style: preserve-3d;
+            transform: translateZ(0);
+            animation: float 3s ease-in-out infinite; /* Animación de flotación */
+            image-rendering: pixelated; /* Hace que los bordes se vean pixelados */
+        }
+
+        .menu-button:hover {
+            background: rgba(58, 58, 58, 0.8); /* Fondo un poco más claro al hacer hover */
+            transform: rotateY(15deg) rotateX(10deg) translateZ(30px);
+            box-shadow: 0 10px 0 rgba(32, 64, 108, 0.8); /* Sombra más pronunciada al hacer hover */
+            animation: none; /* Detener la animación de flotación al hacer hover */
+        }
+
+        .menu-button:active {
+            transform: rotateY(5deg) rotateX(5deg) translateZ(10px);
+            box-shadow: 0 5px 0 rgba(32, 64, 108, 0.8); /* Sombra más pronunciada al hacer clic */
+        }
+
+        /* Flecha estilo Pokémon que aparece al lado del botón seleccionado */
+        .menu-button::before {
+            content: "▶";
+            position: absolute;
+            left: 10px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .menu-button:hover::before {
+            opacity: 1;
+        }
+
+        /* Estilo para los botones del submenú (como el botón de abajo) */
+        .level-button, .extra-button {
+            background: rgba(74, 74, 74, 0.8); /* Fondo ligeramente más claro con transparencia */
+            border: 4px solid rgba(48, 96, 144, 0.8); /* Bordes más delgados con transparencia */
+            border-radius: 0; /* Bordes rectos para estilo pixel art */
+            padding: 0.6rem 1.2rem; /* Menos padding para un tamaño menor */
+            color: #ffffff; /* Texto blanco */
+            font-family: 'Press Start 2P', cursive; /* Fuente pixel art */
+            font-size: 0.9rem; /* Texto más pequeño */
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-align: center;
+            box-shadow: 0 4px 0 rgba(32, 64, 108, 0.8); /* Sombra menos pronunciada con transparencia */
+            transform-style: preserve-3d;
+            transform: translateZ(0);
+            margin: 0.3rem 0;
+            animation: float 3s ease-in-out infinite; /* Animación de flotación */
+            image-rendering: pixelated; /* Hace que los bordes se vean pixelados */
+        }
+
+        .level-button:hover, .extra-button:hover {
+            background: rgba(90, 90, 90, 0.8); /* Fondo un poco más claro al hacer hover */
+            transform: rotateY(15deg) rotateX(10deg) translateZ(30px);
+            box-shadow: 0 6px 0 rgba(32, 64, 108, 0.8); /* Sombra menos pronunciada al hacer hover */
+            animation: none; /* Detener la animación de flotación al hacer hover */
+        }
+
+        .level-button:active, .extra-button:active {
+            transform: rotateY(5deg) rotateX(5deg) translateZ(10px);
+            box-shadow: 0 3px 0 rgba(32, 64, 108, 0.8); /* Sombra menos pronunciada al hacer clic */
+        }
+
+        /* Botón de volver con efecto 3D */
+        .back-button {
+            margin-top: 1rem;
+            background: rgba(74, 74, 74, 0.8); /* Fondo oscuro para estilo retro con transparencia */
+            border: 3px solid rgba(80, 80, 80, 0.8); /* Bordes con transparencia */
+            border-radius: 0; /* Bordes rectos para estilo pixel art */
+            padding: 0.5rem 1rem;
+            color: #ffffff; /* Texto blanco */
+            font-family: 'Press Start 2P', cursive; /* Fuente pixel art */
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-align: center;
+            box-shadow: 0 4px 0 rgba(32, 64, 108, 0.8); /* Sombra más definida con transparencia */
+            transform-style: preserve-3d;
+            transform: translateZ(0);
+            animation: float 3s ease-in-out infinite; /* Animación de flotación */
+            image-rendering: pixelated; /* Hace que los bordes se vean pixelados */
+        }
+
+        .back-button:hover {
+            background: rgba(90, 90, 90, 0.8); /* Fondo un poco más claro al hacer hover */
+            transform: rotateY(15deg) rotateX(10deg) translateZ(30px);
+            box-shadow: 0 6px 0 rgba(32, 64, 108, 0.8); /* Sombra más definida al hacer hover */
+            animation: none; /* Detener la animación de flotación al hacer hover */
+        }
+
+        .back-button:active {
+            transform: rotateY(5deg) rotateX(5deg) translateZ(10px);
+            box-shadow: 0 3px 0 rgba(32, 64, 108, 0.8); /* Sombra más definida al hacer clic */
+        }
+
+        /* Efecto de ruptura */
+        .break {
+            animation: break 1s ease forwards;
+        }
+
+        @keyframes break {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(0) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: white;
+            opacity: 0;
+            animation: explode 0.5s ease forwards;
+        }
+
+        @keyframes explode {
+            0% {
+                opacity: 1;
+                transform: translate(0, 0);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(var(--x), var(--y)) rotate(var(--rotate));
+            }
+        }
+
+        /* Menús de submenús */
+        .level-selector, .extra-menu {
+            display: none;
+            flex-direction: column;
+            gap: 0.8rem;
+            margin-top: 1rem;
+            background: rgba(255, 255, 255, 0.85);
+            border: 4px solid #306090;
+            border-radius: 0; /* Bordes rectos para estilo pixel art */
+            padding: 1rem;
+            box-shadow: 0 4px 0 #20406c, 0 0 15px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Diálogo estilo Pokémon */
+        .dialog-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 10;
+            justify-content: center;
+            align-items: flex-end;
+            padding-bottom: 50px;
+        }
+
+        /* Video de fondo en el diálogo */
+        .background-video {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            z-index: -1;
+            object-fit: cover;
+            display: none;
+        }
+
+        .dialog-box {
+            width: 80%;
+            max-width: 800px;
+            background-color: #f8f8f8;
+            border: 4px solid #306090;
+            border-radius: 0; /* Bordes rectos para estilo pixel art */
+            padding: 20px;
+            position: relative;
+            box-shadow: 0 5px 0 #20406c, 0 0 20px rgba(0, 0, 0, 0.5);
+            z-index: 20;
+            color: #333;
+        }
+
+        .dialog-text {
+            font-size: 1.2rem;
+            line-height: 1.5;
+            text-align: left;
+            margin-bottom: 10px;
+            min-height: 100px;
+        }
+
+        .continue-indicator {
+            position: absolute;
+            bottom: 10px;
+            right: 20px;
+            font-size: 2rem;
+            color: #306090;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+
+        .continue-button {
+            background: #4a4a4a; /* Fondo oscuro para estilo retro */
+            border: 3px solid #306090;
+            border-radius: 0; /* Bordes rectos para estilo pixel art */
+            padding: 10px 20px;
+            color: #ffffff; /* Texto blanco */
+            font-family: 'Press Start 2P', cursive; /* Fuente pixel art */
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: none;
+            margin-top: 10px;
+            box-shadow: 0 3px 0 #20406c;
+        }
+
+        .continue-button:hover {
+            background: #5a5a5a; /* Fondo un poco más claro al hacer hover */
+            transform: translateY(-2px);
+            box-shadow: 0 5px 0 #20406c;
+        }
+
+        .continue-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #20406c;
+        }
+    </style>
+</head>
+<body>
+    <!-- Elemento de audio para la música de fondo (en bucle) -->
+    <audio id="background-music" loop autoplay>
+        <source src="{{ url_for('static', filename='proyecto.wav') }}" type="audio/mpeg">
+        Tu navegador no soporta la etiqueta de audio.
+    </audio>
+
+    <!-- Video de fondo para el diálogo (en bucle) -->
+    <video id="background-video" class="background-video" loop>
+        <source src="{{ url_for('static', filename='video.mp4') }}" type="video/mp4">
+        Tu navegador no soporta la etiqueta de video.
+    </video>
+
+    <div class="game-container">
+        <!-- Título del juego con tipografía pixel art y animación -->
+        <h1 class="game-title">Me, myself and I</h1>
+        
+        <!-- Menú principal -->
+        <div class="menu" id="main-menu">
+            <div class="menu-button" id="play-button">INICIAR</div>
+            <div class="menu-button" id="level-button">NIVEL</div>
+            <div class="menu-button" id="extra-button">EXTRA</div>
+        </div>
+
+        <!-- Menú de nivel -->
+        <div class="level-selector" id="level-selector">
+            <div class="level-button" id="level-1" onclick="fetch('/start?level=1')">NIVEL 1</div>
+            <div class="level-button" id="level-2" onclick="fetch('/start?level=2')">NIVEL 2</div>
+            <div class="level-button" id="level-3" onclick="fetch('/start?level=3')">NIVEL 3</div>
+            <div class="back-button" id="back-button-level">VOLVER</div>
+        </div>
+
+        <!-- Menú de extra -->
+        <div class="extra-menu" id="extra-menu">
+            <div class="extra-button" id="extra-1">Extra 1</div>
+            <div class="back-button" id="back-button-extra">VOLVER</div>
+        </div>
+    </div>
+
+    <!-- Contenedor de diálogo estilo Pokémon -->
+    <div class="dialog-container" id="dialog-container">
+        <div class="dialog-box">
+            <div class="dialog-text" id="dialog-text"></div>
+            <div class="continue-indicator" id="continue-indicator">▼</div>
+            <button class="continue-button" id="continue-button">Continuar</button>
+        </div>
+    </div>
+
+    <script>
+        // Obtén el elemento de audio y video
+        const backgroundMusic = document.getElementById('background-music');
+        const backgroundVideo = document.getElementById('background-video');
+
+        // Interacción con los menús
+        const mainMenu = document.getElementById('main-menu');
+        const levelSelector = document.getElementById('level-selector');
+        const extraMenu = document.getElementById('extra-menu');
+        const playButton = document.getElementById('play-button');
+        const levelButton = document.getElementById('level-button');
+        const extraButton = document.getElementById('extra-button');
+        const backButtonLevel = document.getElementById('back-button-level');
+        const backButtonExtra = document.getElementById('back-button-extra');
+
+        // Mostrar selector de nivel
+        levelButton.addEventListener('click', () => {
+            mainMenu.style.display = 'none';
+            levelSelector.style.display = 'flex';
+        });
+
+        // Mostrar menú de extra
+        extraButton.addEventListener('click', () => {
+            mainMenu.style.display = 'none';
+            extraMenu.style.display = 'flex';
+        });
+
+        // Volver al menú principal desde el selector de nivel
+        backButtonLevel.addEventListener('click', () => {
+            levelSelector.style.display = 'none';
+            mainMenu.style.display = 'flex';
+        });
+
+        // Volver al menú principal desde el menú de extra
+        backButtonExtra.addEventListener('click', () => {
+            extraMenu.style.display = 'none';
+            mainMenu.style.display = 'flex';
+        });
+
+        // Elementos del diálogo
+        const dialogContainer = document.getElementById('dialog-container');
+        const dialogText = document.getElementById('dialog-text');
+        const continueIndicator = document.getElementById('continue-indicator');
+        const continueButton = document.getElementById('continue-button');
+
+        // Historia dividida en párrafos para el diálogo
+        const storyParagraphs = [
+            "El universo es un espejo fragmentado en distintos reflejos.",
+            "Luego de que Kael, un joven de uno de tantos mundos experimentara pasajeramente la omnipotencia entre dimensiones, se obsesiona con aplicar para formar parte de los 'Vigilantes del espejo', un grupo selecto de personas que se encargan de vigilar y mantener el orden entre las realidades y dimensiones del universo.",
+            "Desesperado y orgulloso, Kael solo tiene un requisito faltante para convertirse en Vigilante: debe ser el único en su clase en todo el universo, no puede ser reflejado.",
+            "Manipulado por su ambición, Kael se embarca en una misión asesina para eliminar a todos sus 'yo'. ¿Será capaz de mantener su sanidad o esta misma se quebrará antes de que pueda cumplir con su misión?",
+            "Reglas",
+            "1. Identifica a tu reflejo, cada uno tiene una característica que se asemeja a las tuyas. (Un círculo rojo remarca su posición).",
+            "2. No puedes quedarte en el mismo universo durante mucho tiempo o serás eliminado! (Cada disparo a tu reflejo te dará 5 segundos más de tiempo, no dejes que el cronómetro llegue a 0!).",
+            "3. Pasa desapercibido, nadie puede saber tu propósito. (Si disparas a los NPC, tu puntaje y tiempo se verán afectados, si pierdes demasiado puntaje serás eliminado!)."
+        ];
+
+        let currentParagraph = 0;
+        let charIndex = 0;
+        let typingInterval;
+        let isTyping = false;
+
+        // Efecto de sonido para el texto (como en Pokémon)
+        function playTextSound() {
+            // Aquí podrías agregar un efecto de sonido para cada letra
+            // Por ejemplo: const textSound = new Audio('text-sound.wav'); textSound.play();
+        }
+
+        // Función para mostrar el texto letra por letra (efecto de escritura)
+        function typeWriter() {
+            if (charIndex < storyParagraphs[currentParagraph].length) {
+                dialogText.innerHTML += storyParagraphs[currentParagraph].charAt(charIndex);
+                charIndex++;
+                isTyping = true;
+                playTextSound(); // Reproducir sonido para cada letra
+            } else {
+                clearInterval(typingInterval);
+                isTyping = false;
+                continueIndicator.style.display = 'block';
+                
+                // Si es el último párrafo, mostrar botón de continuar
+                if (currentParagraph === storyParagraphs.length - 1) {
+                    continueButton.style.display = 'block';
+                    continueIndicator.style.display = 'none';
+                }
+            }
+        }
+
+        // Función para mostrar el siguiente párrafo
+        function showNextParagraph() {
+            if (isTyping) {
+                // Si está escribiendo, mostrar todo el texto de una vez
+                clearInterval(typingInterval);
+                dialogText.innerHTML = storyParagraphs[currentParagraph];
+                isTyping = false;
+                continueIndicator.style.display = 'block';
+                
+                // Si es el último párrafo, mostrar botón de continuar
+                if (currentParagraph === storyParagraphs.length - 1) {
+                    continueButton.style.display = 'block';
+                    continueIndicator.style.display = 'none';
+                }
+                return;
+            }
+
+            currentParagraph++;
+            
+            if (currentParagraph < storyParagraphs.length) {
+                dialogText.innerHTML = '';
+                charIndex = 0;
+                continueIndicator.style.display = 'none';
+                typingInterval = setInterval(typeWriter, 30);
+            } else if (currentParagraph === storyParagraphs.length) {
+                // Final de la historia, mostrar botón para continuar al juego
+                continueButton.style.display = 'block';
+                continueIndicator.style.display = 'none';
+            }
+        }
+
+        // Evento para avanzar en el diálogo al hacer clic
+        dialogContainer.addEventListener('click', function(event) {
+            // No procesar clics en el botón "Continuar"
+            if (event.target === continueButton) {
+                return;
+            }
+            
+            showNextParagraph();
+        });
+
+        // Función para mostrar el diálogo y reproducir el video
+        function showDialogAndVideo() {
+            // Pausar la música de fondo
+            backgroundMusic.pause();
+            
+            // Mostrar y reproducir el video
+            backgroundVideo.style.display = 'block';
+            backgroundVideo.play();
+            
+            // Mostrar el diálogo
+            dialogContainer.style.display = 'flex';
+            currentParagraph = 0;
+            charIndex = 0;
+            dialogText.innerHTML = '';
+            continueButton.style.display = 'none';
+            continueIndicator.style.display = 'none';
+            typingInterval = setInterval(typeWriter, 30);
+        }
+
+        // Función para ocultar el diálogo y el video
+        function hideDialogAndVideo() {
+            // Ocultar el diálogo
+            dialogContainer.style.display = 'none';
+            
+            // Pausar y ocultar el video
+            backgroundVideo.pause();
+            backgroundVideo.style.display = 'none';
+            
+            // Reanudar la música de fondo
+            backgroundMusic.play();
+        }
+
+        // Evento del botón "Continuar" para iniciar el juego
+        continueButton.addEventListener('click', () => {
+            hideDialogAndVideo();
+            fetch('/start?level=1')
+            // Aquí iría el código para iniciar el juego
+        });
+
+        // Efecto de ruptura para el botón PLAY y mostrar diálogo con video
+        playButton.addEventListener('click', () => {
+            // Crear pedazos del botón
+            for (let i = 0; i < 20; i++) {
+                const piece = document.createElement('div');
+                piece.classList.add('piece');
+                piece.style.left = `${Math.random() * 100}%`;
+                piece.style.top = `${Math.random() * 100}%`;
+                piece.style.setProperty('--x', `${Math.random() * 200 - 100}px`);
+                piece.style.setProperty('--y', `${Math.random() * 200 - 100}px`);
+                piece.style.setProperty('--rotate', `${Math.random() * 360}deg`);
+                playButton.appendChild(piece);
+            }
+
+            // Aplicar la animación de ruptura
+            playButton.classList.add('break');
+
+            // Ocultar el botón y mostrar diálogo después de la animación
+            setTimeout(() => {
+                playButton.style.display = 'none';
+                
+                // Mostrar el diálogo y reproducir el video
+                showDialogAndVideo();
+                
+                // Volver a mostrar el botón después cuando se cierre el diálogo
+                setTimeout(() => {
+                    playButton.style.display = 'block';
+                    playButton.classList.remove('break');
+                }, 100);
+            }, 500);
+        });
+
+        // Iniciar la música después de la primera interacción del usuario
+        document.addEventListener('click', () => {
+            if (backgroundMusic.paused) {
+                backgroundMusic.play(); // Reproduce la música
+            }
+        }, { once: true }); // Solo se ejecuta una vez
+    </script>
+</body>
+</html>
+{% endblock %}
